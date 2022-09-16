@@ -15,7 +15,8 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "paragonie/random_compat": "^9.99",
-        "symfony/polyfill-php74": "^1.26"
+        "symfony/polyfill-php74": "^1.26",
+        "tymon/jwt-auth": "^1.0"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
