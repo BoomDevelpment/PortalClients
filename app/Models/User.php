@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\General\Profile;
+use App\Models\Pivot\ClientUser;
+use App\Models\Pivot\OperatorUser;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -20,6 +23,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'username',
         'password',
     ];
 
@@ -41,4 +45,11 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function client()    {    return $this->hasOne(ClientUser::class);       }
+    
+    public function operator()  {    return $this->hasOne(OperatorUser::class);     }
+    
+    public function profile()    {   return $this->belongsTo(Profile::class);      }
+
 }

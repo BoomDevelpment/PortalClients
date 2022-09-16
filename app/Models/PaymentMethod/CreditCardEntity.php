@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class CreditCardEntity extends Model
 {
     use HasFactory;
+
+    public function entity() {   return $this->hasOne(CreditCardEntity::class);    }
 }
