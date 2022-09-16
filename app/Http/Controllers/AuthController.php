@@ -2,27 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-// use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
-
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
-use App\Models\User;
 use JWTAuth;
+use JWTFactory;
+use App\Models\User;
+use Illuminate\Http\Request;
+
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Validator;
+
+use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {
+
     /**
-     * Create a new AuthController instance.
+     * Get a View Login Client Portal
      *
-     * @return void
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function __construct()
+    public function index(Request $request)
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        return view('pages/auth/login');
     }
 
     /**
@@ -30,37 +31,56 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(Request $request)
+    public function authenticate(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
+        $credentials    =   $request->only(['username', 'password']);
+       
+        $validator      =   Validator::make($request->all(), [
+            'username' => 'required|string|min:5',
+            'password' => 'required|string|min:5',
         ]);
         
         if ($validator->fails()) 
         {
-            return response()->json($validator->errors(), Response::HTTP_BAD_REQUEST);
+            return response()->json(['error' => $validator->messages()], Response::HTTP_UNAUTHORIZED);
         }
-        
-        $credentials    =   $request->only(['username', 'password']);
 
         $user           =   User::GetUserLogin($request);
         
         $time           =   ($user == 1) ? env('JWT_TTL') : env('JWT_TTL_OPE');
-
-        if (!$token = auth()->attempt($credentials, ['exp' => auth()->factory()->getTTL() * $time])) 
-        {
-            return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED );
-        }
+       
+        try {
+            if (! $token = JWTAuth::attempt($credentials, ['exp' => auth()->factory()->getTTL() * $time])) {
+                return response()->json([
+                	'success' => false,
+                	'message' => 'Login credentials are invalid.',
+                ], Response::HTTP_UNAUTHORIZED);
+            }
         
-        return response()->json([
-            'access_token'  =>  $token,
-            'time'          =>  $time
-            // 'token_type'    => 'bearer',
-            // 'expires_in'    => auth()->factory()->getTTL() * 60
-        ]);
+        } catch (JWTException $e) {
 
-        return $this->respondWithToken($token);
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not create token.',
+            ], Response::HTTP_UNAUTHORIZED);
+
+        }
+
+        return response()->json([
+            'success'   =>  true,
+            'token'     =>  $token,
+        ],  Response::HTTP_OK);
+    }
+
+    public function getuser(Request $request)
+    {
+        $this->validate($request, [
+            'token' =>  'required'
+        ]);
+ 
+        $user   =   JWTAuth::authenticate($request->token);
+ 
+        return response()->json(['user' => $user]);
     }
 
     /**
@@ -70,6 +90,7 @@ class AuthController extends Controller
      */
     public function me()
     {
+        
         return response()->json(auth()->user());
 
     }

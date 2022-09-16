@@ -61,7 +61,8 @@
             <div class="row">
                 <div class="col-sm-12">
                    <div id="errors-list"></div>
-                    <form method="post" class="md-float-material form-material m-t-40 m-b-40" id="handleLogin" action="{{url('login')}}" name="handleLogin">
+                    {{-- <form method="post" class="md-float-material form-material m-t-40 m-b-40" id="handleLogin" action="{{url('login')}}" name="handleLogin"> --}}
+                    <form method="post" class="md-float-material form-material m-t-40 m-b-40" id="handleLogin"  name="handleLogin">
                         @csrf
                         <div class="auth-box card">
                             <div class="card-block">
