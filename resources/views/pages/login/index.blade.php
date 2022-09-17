@@ -60,9 +60,8 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-12">
-                   <div id="errors-list"></div>
-                    {{-- <form method="post" class="md-float-material form-material m-t-40 m-b-40" id="handleLogin" action="{{url('login')}}" name="handleLogin"> --}}
-                    <form method="post" class="md-float-material form-material m-t-40 m-b-40" id="handleLogin"  name="handleLogin">
+                    <form method="post" class="md-float-material form-material m-t-40 m-b-40" id="handleLogin" action="{{url('api/login')}}" name="handleLogin">
+                    {{-- <form method="post" class="md-float-material form-material m-t-40 m-b-40" id="handleLogin"  name="handleLogin"> --}}
                         @csrf
                         <div class="auth-box card">
                             <div class="card-block">
@@ -81,6 +80,10 @@
                                     </div>
                                 </div>
                                 <div class="form-group form-primary">
+                                    <div id="errors-list">
+                                    </div>
+                                </div>
+                                <div class="form-group form-primary">
                                     <input type="text" name="username" id="username" value="{{old('username')}}" class="form-control" required="" placeholder="Username">
                                     <span class="form-bar"></span>
                                 </div>
@@ -90,7 +93,7 @@
                                 </div>
                                 <div class="row m-t-30">
                                     <div class="col-md-12">
-                                        <button type="submit" class="btn btn-primary btn-md btn-block waves-effect text-center m-b-20">Login</button>
+                                        <button type="submit" id="login" class="btn btn-primary btn-md btn-block waves-effect text-center m-b-20">Login</button>
                                     </div>
                                 </div>
                             </div>
@@ -121,24 +124,33 @@
     <script type="text/javascript" src="{{ asset('src/assets/js/script.js') }}"></script>
 
     <script>
+        $(document).ready(function() { localStorage.clear(); });
+
         $(function() {
-            $(document).on("submit", "#handleLogin", function() {
+
+            $(document).on("submit", "#handleLogin", function() 
+            {
                 var e = this;
-                $(this).find("[type='submit']").html("Login...");
-                $.post($(this).attr('action'), $(this).serialize(), function(data){
-                    $(this).find("[type='submit']").html("Login");
-                    
-                    console.log(data);
-                    
-                }).fail(function(response){
-                    $(this).find("[type='submit']").html("Login");
-                    $(".alert").remove();
-                    var erroJson = JSON.parse(response.responseText);
-                    for (var err in erroJson) 
-                    {
-                        for (var errstr of erroJson[err])
-                          $("#errors-list").append("<div class='alert alert-danger'>" + errstr + "</div>");
+                var request = $.ajax({
+                    url:    $(this).attr('action'),
+                    type:   'post',
+                    data:   $(this).serialize(),
+                    headers:{
+                        'X-CSRF-TOKEN': 	$('meta[name="csrf-token"]').attr('content'),
+                        'Content-Type': 	'application/x-www-form-urlencoded'
                     }
+                });
+                request.done(function(data){
+                    document.getElementById('login').innerText='Login';
+                    document.getElementById('errors-list').innerText='';
+                    localStorage.setItem("token", data.token);
+                    window.location = data.url
+                })
+                request.fail(function(response){
+                    document.getElementById('login').innerText='Login';
+                    document.getElementById('errors-list').innerText='';
+                    $("#errors-list").html("<div class='alert alert-danger'>" + JSON.parse(response.responseText).message + "</div>");
+                    localStorage.clear();
                 });
                 return false;
             });

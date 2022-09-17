@@ -42,15 +42,18 @@ class AuthController extends Controller
         
         if ($validator->fails()) 
         {
-            return response()->json(['error' => $validator->messages()], Response::HTTP_UNAUTHORIZED);
+            return response()->json([                	
+                'success' => false,
+                'message' => 'Login credentials are invalid.'
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $user           =   User::GetUserLogin($request);
+        $user   =   User::GetUserLogin($request);
         
-        $time           =   ($user == 1) ? env('JWT_TTL') : env('JWT_TTL_OPE');
+        $info   =   ($user == 1) ? ['time' => env('JWT_TTL'), 'url' => 'client'] : ['time' => env('JWT_TTL_OPE'), 'url' => 'dashboard'] ;
        
         try {
-            if (! $token = JWTAuth::attempt($credentials, ['exp' => auth()->factory()->getTTL() * $time])) {
+            if (! $token = JWTAuth::attempt($credentials, ['exp' => auth()->factory()->getTTL() * $info['time']])) {
                 return response()->json([
                 	'success' => false,
                 	'message' => 'Login credentials are invalid.',
@@ -69,6 +72,7 @@ class AuthController extends Controller
         return response()->json([
             'success'   =>  true,
             'token'     =>  $token,
+            'url'       =>  url($info['url'])
         ],  Response::HTTP_OK);
     }
 

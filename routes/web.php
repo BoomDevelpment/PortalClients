@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
@@ -20,4 +22,7 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 
-Route::get('/',    [LoginController::class, 'index']);
+Route::get('/',         [LoginController::class, 'index']);
+
+Route::get('/client',       [ClientController::class, 'index']);
+Route::get('/dashboard',    [DashboardController::class, 'index']);
